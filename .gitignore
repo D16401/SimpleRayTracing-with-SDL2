@@ -23,3 +23,5 @@ build/
 
 #SDL lib
 libs/SDL2/lib/
+
+.vscode/

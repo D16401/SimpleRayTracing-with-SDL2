@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(main SDL2_test2)
+set(main Light_1.2)
 project(${main})
 
 set(CMAKE_CXX_STANDARD 17)
