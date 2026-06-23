@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(main Light_1.2)
+set(Test1 BasicRayTracing)
+set(Test2 DirectLight)
+set(Test3 HardShadows)
+
+set(main ${Test3})
 project(${main})
 
 set(CMAKE_CXX_STANDARD 17)

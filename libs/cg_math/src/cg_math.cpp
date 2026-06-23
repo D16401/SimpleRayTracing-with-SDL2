@@ -1,6 +1,7 @@
-#include "cg_math.h"
 #include <cmath>
 #include <utility>
+
+#include "cg_math.h"
 
 
 Vec3 Vec3::operator+(const Vec3& other) const{

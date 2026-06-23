@@ -37,15 +37,33 @@ int main(int argc, char* argv[]){
     SDL_RenderPresent(renderer);//显示绘制的内容
 
     Camera camera;
-
+    camera.setCameraMode(CameraMode::HardShadows);
     Scene scene;//栈上创建
+    scene.setAmbientLight(0.2f);
+
     auto sphereAPtr = std::make_unique<Sphere>();//堆上创建
     sphereAPtr->setColor({255, 0, 0, 255});
     sphereAPtr->setRadius(0.5f);
-    sphereAPtr->setPosition(Vec3(0, 0, 2));
+    sphereAPtr->setPosition(Vec3(0, 0, -2));
     scene.addObjectPtr(std::move(sphereAPtr));//sphereAPtr现在是nullptr
 
+    auto planePtr = std::make_unique<Plane>();
+    planePtr->setColor({255, 255, 0, 255});
+    planePtr->setNormal(Vec3(0, 2, 0));
+    planePtr->setPosition(Vec3(0, -1.3f, -2));
+    scene.addObjectPtr(std::move(planePtr));
+
+    Vec3 L = Vec3(0,1,-1);
+    Vec3 L_v = camera.getForward() * L.dot(camera.getForward())/(camera.getForward().length() * camera.getForward().length());
+    Vec3 h = L - L_v;
+    float r = h.length();
+
+    auto PLightPtr = std::make_unique<PointLight>(0.8f);
+    PLightPtr->setPosition(L);
+    scene.addLightPtr(std::move(PLightPtr));
+
     bool isrunning = true;
+    int timer = 0;
     SDL_Event event;
     while (isrunning)
     {
@@ -71,7 +89,17 @@ int main(int argc, char* argv[]){
             }
         }
         SDL_RenderPresent(renderer);
-        SDL_Delay(160);
+        SDL_Delay(200);
+        timer++;
+        Vec3 newPosition = L_v + Vec3(static_cast<float>(r*cos(timer*2*M_PI/40)), static_cast<float>(r*sin(timer*2*M_PI/40)), 0);
+        auto* light = scene.getLightPtrs()[0].get();
+        if (!light) {
+            // 空指针保护
+            return -1;
+        }
+        if (auto* pointLight = dynamic_cast<PointLight*>(light)) {
+            pointLight->setPosition(newPosition);
+        }
     }
     return 0;
 }

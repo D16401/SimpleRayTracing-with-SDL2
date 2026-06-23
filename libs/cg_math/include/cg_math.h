@@ -1,5 +1,6 @@
 #ifndef CG_MATH_H
 #define CG_MATH_H
+
 #include <cmath>
 
 #define CGMath_EPS 1e-7f
@@ -53,6 +54,5 @@ public:
 
 int solveQuadratic(float a, float b, float c, float& x1, float& x2);
 //求解二次方程，返回值为根的个数：0无实根，1有重根，2有两不同实根
-
 
 #endif

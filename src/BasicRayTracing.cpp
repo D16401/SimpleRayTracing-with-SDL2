@@ -37,27 +37,16 @@ int main(int argc, char* argv[]){
     SDL_RenderPresent(renderer);//显示绘制的内容
 
     Camera camera;
-    camera.setCameraMode(CameraMode::DirectLighting);
-    Scene scene;//栈上创建
-    scene.setAmbientLight(0.2f);
+    camera.setCameraMode(CameraMode::VisibilityOnly);
 
+    Scene scene;//栈上创建
     auto sphereAPtr = std::make_unique<Sphere>();//堆上创建
     sphereAPtr->setColor({255, 0, 0, 255});
     sphereAPtr->setRadius(0.5f);
     sphereAPtr->setPosition(Vec3(0, 0, -2));
     scene.addObjectPtr(std::move(sphereAPtr));//sphereAPtr现在是nullptr
 
-    Vec3 L = Vec3(0,1,-1);
-    Vec3 L_v = camera.getForward() * L.dot(camera.getForward())/(camera.getForward().length() * camera.getForward().length());
-    Vec3 h = L - L_v;
-    float r = h.length();
-
-    auto DLightPtr = std::make_unique<DirectionalLight>(0.8f);
-    DLightPtr->setDirection(L);
-    scene.addLightPtr(std::move(DLightPtr));
-
     bool isrunning = true;
-    int timer = 0;
     SDL_Event event;
     while (isrunning)
     {
@@ -83,16 +72,7 @@ int main(int argc, char* argv[]){
             }
         }
         SDL_RenderPresent(renderer);
-        SDL_Delay(200);
-        timer++;
-        Vec3 newDirection = L_v + Vec3(r*cos(timer*2*M_PI/20), r*sin(timer*2*M_PI/20), 0);
-        auto* light = scene.getLightPtrs()[0].get();
-        if (!light) {
-            return -1;
-        }
-        if (auto* directionalLight = dynamic_cast<DirectionalLight*>(light)) {
-            directionalLight->setDirection(newDirection);
-        }
+        SDL_Delay(160);
     }
     return 0;
 }
