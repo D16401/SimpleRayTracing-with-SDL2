@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
+set(Test0 SDL2_test)
 set(Test1 BasicRayTracing)
 set(Test2 DirectLight)
 set(Test3 HardShadows)

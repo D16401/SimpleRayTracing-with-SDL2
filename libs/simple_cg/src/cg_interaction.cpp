@@ -127,12 +127,13 @@ float SpecularFactor(int specular, const Vec3& HitPointNormal, const Vec3& HitIn
         }
     }
 }
-float ComputeLighting(const Camera& camera, const Scene& scene, const Vec3& HitPoint, const Vec3& HitPointNormal, int SurfaceSpecular){
+float ComputeLighting(const Camera& camera, const Scene& scene, const Vec3& HitPoint, const Vec3& HitPointNormal, int SurfaceSpecular, bool enableOcclusionTest){
+    bool OcclusionTest = enableOcclusionTest;
     float total_intensity = 0;
     Vec3 viewDirection = HitPoint - camera.getPosition();
     size_t n_Lights = scene.getLightPtrs().size();
     for (size_t idx = 0; idx < n_Lights; idx++){
-        if (camera.getCameraMode() == CameraMode::HardShadows && scene.getLightPtrs()[idx]->OcclusionTest(scene, HitPoint)){
+        if (OcclusionTest && scene.getLightPtrs()[idx]->OcclusionTest(scene, HitPoint)){
             continue;
         }
         Vec3 HitInDirection = scene.getLightPtrs()[idx]->getHitInDirection(HitPoint);
@@ -155,14 +156,24 @@ SDL_Color SimpleRayTracing(const Camera& camera, const Scene& scene, const Vec2&
     switch (camera.getCameraMode())
     {
         case CameraMode::VisibilityOnly:{break;}
-        case CameraMode::DirectLighting:{}//same as HardShadows
-        case CameraMode::HardShadows:{
+        case CameraMode::DirectLighting:{
             float total_intensity = 0;
             if (closest_objPtr_index != static_cast<size_t>(-1)){
                 Vec3 Hitpoint = camearPos + ray.getDirection() * closest_distance;
                 Vec3 HitpointNormal = scene.getObjectPtrs()[closest_objPtr_index]->getNormal(Hitpoint);
                 int specular = scene.getObjectPtrs()[closest_objPtr_index]->getSpecular();
-                total_intensity = ComputeLighting(camera, scene, Hitpoint, HitpointNormal, specular);
+                total_intensity = ComputeLighting(camera, scene, Hitpoint, HitpointNormal, specular, false);//enableOcclusionTest = false
+            }
+            color = color * (scene.getAmbientLight() + total_intensity);
+            break;
+        }
+        case CameraMode::HardShadows:{//almost same as DirectLighting
+            float total_intensity = 0;
+            if (closest_objPtr_index != static_cast<size_t>(-1)){
+                Vec3 Hitpoint = camearPos + ray.getDirection() * closest_distance;
+                Vec3 HitpointNormal = scene.getObjectPtrs()[closest_objPtr_index]->getNormal(Hitpoint);
+                int specular = scene.getObjectPtrs()[closest_objPtr_index]->getSpecular();
+                total_intensity = ComputeLighting(camera, scene, Hitpoint, HitpointNormal, specular, true);//enableOcclusionTest = true
             }
             color = color * (scene.getAmbientLight() + total_intensity);
             break;

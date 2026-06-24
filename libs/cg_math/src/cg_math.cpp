@@ -1,5 +1,6 @@
 #include <cmath>
 #include <utility>
+#include <random>
 
 #include "cg_math.h"
 
@@ -91,3 +92,7 @@ int solveQuadratic(float a, float b, float c, float& x1, float& x2){
     }
 }
 
+int randint(int l, int r) {
+    static std::mt19937 g{std::random_device{}()};
+    return std::uniform_int_distribution<>(l, r)(g);
+}

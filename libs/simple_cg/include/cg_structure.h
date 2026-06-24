@@ -1,5 +1,4 @@
-#ifndef CG_STRUCTURE_H
-#define CG_STRUCTURE_H
+#pragma once
 
 #include <cstdint>
 #include <vector>
@@ -164,7 +163,6 @@ private:
 };
 
 
-
 class Scene{
 public:
     //getter
@@ -183,4 +181,5 @@ private:
     std::vector<std::unique_ptr<Object>> ObjectPtrs;
     std::vector<std::unique_ptr<Light>> LightPtrs;
 };
-#endif
+
+

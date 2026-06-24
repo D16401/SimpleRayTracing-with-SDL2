@@ -1,98 +1,53 @@
 #include <SDL2/SDL.h>
 #include <iostream>
+#include <memory>
 #include "cg_math.h"
 #include "simple_cg.h"
 
+
+
 int main(int argc, char* argv[]){
-    if (SDL_Init(SDL_INIT_VIDEO) < 0){
-        std::cerr << "Fail to initialize SDL:" << SDL_GetError() << std::endl;
-        return -1;
-    }
-
-    SDL_Window* window = SDL_CreateWindow(
-        "Title",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        500,//camera.canvasW,
-        500,//camera.canvasH,
-        SDL_WINDOW_SHOWN
-    );
-    if(!window){
-        std::cerr << "Fail to create the window:" << SDL_GetError() << std::endl;
-    }
-
-    SDL_Renderer* renderer = SDL_CreateRenderer(
-        window,
-        -1,
-        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
-    );
-    if(!renderer){
-	    std::cerr << "Fail to create the window:" << SDL_GetError() << std::endl;
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return -1;
-    }
-    SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);//设置颜色:黑色，完全不透明
-    SDL_RenderClear(renderer);//全屏绘制颜色
-    SDL_RenderPresent(renderer);//显示绘制的内容
-
-    Camera camera;
-    camera.setCameraMode(CameraMode::DirectLighting);
-    Scene scene;//栈上创建
-    scene.setAmbientLight(0.2f);
+    std::shared_ptr<Camera> cameraPtr = std::make_shared<Camera>();
+    cameraPtr->setCameraMode(CameraMode::DirectLighting);
+    std::shared_ptr<Scene> scenePtr = std::make_shared<Scene>();
+    scenePtr->setAmbientLight(0.2f);
 
     auto sphereAPtr = std::make_unique<Sphere>();//堆上创建
     sphereAPtr->setColor({255, 0, 0, 255});
     sphereAPtr->setRadius(0.5f);
     sphereAPtr->setPosition(Vec3(0, 0, -2));
-    scene.addObjectPtr(std::move(sphereAPtr));//sphereAPtr现在是nullptr
+    scenePtr->addObjectPtr(std::move(sphereAPtr));//sphereAPtr现在是nullptr
+
 
     Vec3 L = Vec3(0,1,-1);
-    Vec3 L_v = camera.getForward() * L.dot(camera.getForward())/(camera.getForward().length() * camera.getForward().length());
+    Vec3 L_v = cameraPtr->getForward() * L.dot(cameraPtr->getForward())/(cameraPtr->getForward().length() * cameraPtr->getForward().length());
     Vec3 h = L - L_v;
     float r = h.length();
 
     auto DLightPtr = std::make_unique<DirectionalLight>(0.8f);
     DLightPtr->setDirection(L);
-    scene.addLightPtr(std::move(DLightPtr));
+    scenePtr->addLightPtr(std::move(DLightPtr));
 
-    bool isrunning = true;
-    int timer = 0;
-    SDL_Event event;
-    while (isrunning)
-    {
-        while (SDL_PollEvent(&event))//监测关闭按钮和按键esc是否被按下
+    SDL_Application app;
+    app.LoadCamera(cameraPtr);
+    app.LoadScene(scenePtr);
+    app.Init();
+    app.Run([&]() 
         {
-            if(event.type == SDL_QUIT){
-                isrunning = false;
-            }else if(event.type == SDL_KEYDOWN){
-                switch (event.key.keysym.sym)
-                {
-                    case SDLK_ESCAPE:
-                        isrunning = false;
-                        break;
-                }
+            Vec3 newDirection = (
+                L_v + 
+                Vec3(static_cast<float>(r*cos(app.getFramesCount()*2*M_PI/20)),
+                    static_cast<float>(r*sin(app.getFramesCount()*2*M_PI/20)),
+                    0));
+            auto* light = scenePtr->getLightPtrs()[0].get();
+            if (!light) {
+                std::cerr << "Fail to modify the light. Nullptr error!" << std::endl;
+                return;
+            }
+            if (auto* directionalLight = dynamic_cast<DirectionalLight*>(light)) {
+                directionalLight->setDirection(newDirection);
             }
         }
-        
-        for (int i = 0; i < camera.getCanvasW(); i++){
-            for (int j = 0; j < camera.getCanvasH(); j++){
-                Vec2 canvasP = Vec2(float(i), float(j));
-                SDL_Color color = SimpleRayTracing(camera, scene, canvasP);
-                PaintPixel(renderer, canvasP, color);
-            }
-        }
-        SDL_RenderPresent(renderer);
-        SDL_Delay(200);
-        timer++;
-        Vec3 newDirection = L_v + Vec3(r*cos(timer*2*M_PI/20), r*sin(timer*2*M_PI/20), 0);
-        auto* light = scene.getLightPtrs()[0].get();
-        if (!light) {
-            return -1;
-        }
-        if (auto* directionalLight = dynamic_cast<DirectionalLight*>(light)) {
-            directionalLight->setDirection(newDirection);
-        }
-    }
+    );
     return 0;
 }
