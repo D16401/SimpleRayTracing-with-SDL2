@@ -4,8 +4,9 @@ set(Test0 SDL2_test)
 set(Test1 BasicRayTracing)
 set(Test2 DirectLight)
 set(Test3 HardShadows)
+set(Test4 RecursiveReflection)
 
-set(main ${Test3})
+set(main ${Test4})
 project(${main})
 
 set(CMAKE_CXX_STANDARD 17)

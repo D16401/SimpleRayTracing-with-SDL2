@@ -21,7 +21,7 @@ public:
     int HandleEvent();//处理事件，窗口关闭和esc按下事件
     int RenderScene();
     void PaintPixel(Vec2& canvasP, SDL_Color color);
-    int getFramesCount(){return framesCount;}
+    int getTickCount(){return tickCount;}
 private:
     const char* title = "Title";
     int canvasW = 200;
@@ -32,11 +32,11 @@ private:
     SDL_Renderer* renderer = nullptr;
     std::shared_ptr<const Camera> cameraPtr;
     std::shared_ptr<const Scene> scenePtr;
-    int framesCount = 0;
-    int frameDelay = 160;
+    int tickCount = 0;
+    int fps = 30;
 };
 
 SDL_Color operator*(float scalar, SDL_Color color);
 SDL_Color operator*(SDL_Color color, float scalar);
-SDL_Color blend(SDL_Color color1, SDL_Color color2);
+SDL_Color blendByReflectivity(SDL_Color color1, SDL_Color color2, float reflectivity);
 

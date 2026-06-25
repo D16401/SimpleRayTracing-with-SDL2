@@ -1,10 +1,10 @@
-#include <SDL2/SDL.h>
 #include <iostream>
 #include <memory>
+
+#include <SDL2/SDL.h>
+
 #include "cg_math.h"
 #include "simple_cg.h"
-
-
 
 int main(int argc, char* argv[]){
     std::shared_ptr<Camera> cameraPtr = std::make_shared<Camera>();
@@ -36,8 +36,8 @@ int main(int argc, char* argv[]){
         {
             Vec3 newDirection = (
                 L_v + 
-                Vec3(static_cast<float>(r*cos(app.getFramesCount()*2*M_PI/20)),
-                    static_cast<float>(r*sin(app.getFramesCount()*2*M_PI/20)),
+                Vec3(static_cast<float>(r*cos(app.getTickCount()*2*M_PI/20)),
+                    static_cast<float>(r*sin(app.getTickCount()*2*M_PI/20)),
                     0));
             auto* light = scenePtr->getLightPtrs()[0].get();
             if (!light) {

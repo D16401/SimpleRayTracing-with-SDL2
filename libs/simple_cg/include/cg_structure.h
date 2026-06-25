@@ -40,6 +40,7 @@ public:
     float getDepth() const {return depth;}
     float getViewportW() const {return viewportW;}
     float getViewportH() const {return viewportH;}
+    int getReflectionDepth() const {return reflectionDepth;}
     Vec3 getForward() const {return forward;}
     Vec3 getUp() const {return up;}
     Vec3 getRight() const {return right;}
@@ -47,9 +48,14 @@ public:
     Vec3 getPosition() const {return position;}
     CameraMode getCameraMode() const {return cameraMode;}
     //setter
+    void setRatio(int W, int H){ratio = static_cast<float>(W/H);}
+    void setCanvasW(int W){canvasW = W; canvasH = static_cast<int>(W / ratio) + 1;}
+    void setCanvasH(int H){canvasH = H; canvasW = static_cast<int>(H * ratio) + 1;}
+    void setReflectionDepth(int depth){reflectionDepth = depth;}
     void setCameraMode(CameraMode mode) {cameraMode = mode;}
 private:
     //output setting
+    float ratio = 1.0f;
     int canvasW = 500;
     int canvasH = 500;
     CameraMode cameraMode = CameraMode::VisibilityOnly;
@@ -57,6 +63,7 @@ private:
     float depth = 1.0f;
     float viewportW = 1.0f;
     float viewportH = 1.0f;
+    int reflectionDepth = 1;
     //右手坐标系
     Vec3 position = Vec3(0.0f, 0.0f, 0.0f);
     Vec3 forward = Vec3(0.0f, 0.0f, -1.0f);
@@ -77,17 +84,21 @@ public:
     Vec3 getPosition() const {return position;}
     SDL_Color getColor() const {return color;}
     int getSpecular() const {return specular;}
+    float getReflectivity() const {return reflectivity;}
     ObjectType getType() const {return type;}
     virtual Vec3 getNormal(const Vec3& Hitpoint) const = 0;
     //setter
     void setPosition(Vec3 Obj_position){position = Obj_position;}
     void setColor(SDL_Color Obj_color){color = Obj_color;};
+    void setSpecular(int s){specular = s;}
+    void setReflectivity(float r){reflectivity = r;}
     //virtual interaction
     virtual bool intersectTest(const Ray& ray, float& return_distance) const = 0;
 private:
     Vec3 position = Vec3(0.0f, 0.0f, 0.0f);
     SDL_Color color = {0, 0, 0, 255};
     int specular = -1;
+    float reflectivity = 0;
     ObjectType type = ObjectType::NONE;
 };
 class Sphere: public Object{
@@ -130,7 +141,7 @@ public:
     float getIntensity(){return std::clamp(intensity, 0.f, 1.f);}//clamp, #include <algorithm>
     virtual Vec3 getHitInDirection(const Vec3& HitPoint) const = 0;
     //virtual interaction
-    virtual bool Light::OcclusionTest(const Scene& scene, const Vec3& HitPoint) const = 0;
+    virtual bool OcclusionTest(const Scene& scene, const Vec3& HitPoint) const = 0;
 private:
     float intensity = 0;//光强，值应为0~1
     LightType type;
@@ -172,6 +183,7 @@ public:
     const std::vector<std::unique_ptr<Light>>& getLightPtrs() const {return LightPtrs;}
     //setter
     void setAmbientLight(float intensity){AmbientLight_intensity = intensity;};
+    void setBackground(SDL_Color color){backgroundColor = color;}
     //adder
     void addObjectPtr(std::unique_ptr<Object> ObjectPtr);//为Scene实例添加物体（unique_ptr）//unique_ptr, #include <memory>
     void addLightPtr(std::unique_ptr<Light> LightPtr);//为Scene实例添加光源

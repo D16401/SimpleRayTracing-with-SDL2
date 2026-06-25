@@ -66,19 +66,31 @@ int SDL_Application::Init(bool enableTestWindow){
             testWindow = false;
             std::cout << "Test window is terminated by the user." << std::endl;
         }
-        SDL_Delay(frameDelay);
+        SDL_Delay(1000/fps);
     };
     return 0;
 }
 int SDL_Application::Run(std::function<void()> UpdateBlock){
     bool isrunning = true;
-    while (isrunning)
+    Uint64 lastTime = SDL_GetTicks64();
+    const Uint64 frameDelay = 1000 / fps;
+    double lag = 0.0;
+    while (isrunning)//固定30hz的updateblock，渲染越快越好
     {
+        Uint64 currentTime = SDL_GetTicks64();
+        Uint64 elapsed = currentTime - lastTime;
+        lastTime = currentTime;
+        lag += elapsed;
         if(HandleEvent() == 1){
             isrunning = false;
             std::cout << "Terminated by the user." << std::endl;
+            break;
         }
-        UpdateBlock();
+        while (lag >= frameDelay){
+            tickCount++;
+            UpdateBlock();
+            lag -= frameDelay;
+        }
         int renderStatus = RenderScene();
         if (renderStatus == 1){
             isrunning = false;
@@ -86,8 +98,7 @@ int SDL_Application::Run(std::function<void()> UpdateBlock){
         }else if (renderStatus == 2){
             isrunning = false;
             std::cerr << "No Scene has been loaded." << std::endl;
-        }else if(renderStatus == 0){
-            continue;
+        }else if(renderStatus == 0){//do nothing
         }
     }
     return 0;
@@ -109,7 +120,6 @@ int SDL_Application::HandleEvent(){
     return 0;
 }
 int SDL_Application::RenderScene(){
-    SDL_Delay(frameDelay);
     if (isCameraLoaded == false){
         return 1;
     }else if(isSceneLoaded == false){
@@ -118,12 +128,12 @@ int SDL_Application::RenderScene(){
     for (int i = 0; i < cameraPtr->getCanvasW(); i++){
         for (int j = 0; j < cameraPtr->getCanvasH(); j++){
             Vec2 canvasP = Vec2(float(i), float(j));
-            SDL_Color color = SimpleRayTracing(*cameraPtr, *scenePtr, canvasP);
+            Vec3 viewportP = CanvasToViewport(*cameraPtr, canvasP);
+            SDL_Color color = SimpleRayTracing(*cameraPtr, *scenePtr, viewportP);
             PaintPixel(canvasP, color);
         }
     }
     SDL_RenderPresent(renderer);
-    framesCount++;
     return 0;
 }
 void SDL_Application::PaintPixel(Vec2& canvasP, SDL_Color color){
@@ -148,11 +158,11 @@ SDL_Color operator*(float scalar, SDL_Color color){
 SDL_Color operator*(SDL_Color color, float scalar){
     return scalar*color;
 }
-SDL_Color blend(SDL_Color color1, SDL_Color color2){
+SDL_Color blendByReflectivity(SDL_Color color1, SDL_Color color2, float reflectivity){
     return {
-        static_cast<Uint8>((static_cast<int>(color1.r) + color2.r) / 2),
-        static_cast<Uint8>((static_cast<int>(color1.g) + color2.g) / 2),
-        static_cast<Uint8>((static_cast<int>(color1.b) + color2.b) / 2),
-        static_cast<Uint8>((static_cast<int>(color1.a) + color2.a) / 2)
+        static_cast<Uint8>((color1.r * (1-reflectivity) + color2.r * reflectivity)),
+        static_cast<Uint8>((color1.g * (1-reflectivity) + color2.g * reflectivity)),
+        static_cast<Uint8>((color1.b * (1-reflectivity) + color2.b * reflectivity)),
+        static_cast<Uint8>((color1.a * (1-reflectivity)+ color2.a * reflectivity))
     };
 }

@@ -1,5 +1,8 @@
-#include <SDL2/SDL.h>
 #include <iostream>
+#include <memory>
+
+#include <SDL2/SDL.h>
+
 #include "cg_math.h"
 #include "simple_cg.h"
 

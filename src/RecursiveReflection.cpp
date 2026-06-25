@@ -8,24 +8,35 @@
 
 int main(int argc, char* argv[]){
     std::shared_ptr<Camera> cameraPtr = std::make_shared<Camera>();
-    cameraPtr->setCameraMode(CameraMode::HardShadows);
-    //cameraPtr->setRatio(1920, 1080);
-    //cameraPtr->setCanvasW(200);
+    cameraPtr->setCameraMode(CameraMode::RecursiveReflection);
+    cameraPtr->setReflectionDepth(2);
     
     std::shared_ptr<Scene> scenePtr = std::make_shared<Scene>();
     scenePtr->setAmbientLight(0.2f);
+    scenePtr->setBackground({0, 0, 0, 255});
 
     auto sphereAPtr = std::make_unique<Sphere>();//堆上创建
     sphereAPtr->setColor({255, 0, 0, 255});
     sphereAPtr->setRadius(0.5f);
-    sphereAPtr->setPosition(Vec3(0, 0, -5));
-    sphereAPtr->setSpecular(400);
+    sphereAPtr->setPosition(Vec3(-0.6f, 0, -2.0f));
+    sphereAPtr->setSpecular(100);
+    sphereAPtr->setReflectivity(0.2f);
     scenePtr->addObjectPtr(std::move(sphereAPtr));//sphereAPtr现在是nullptr
 
+    auto sphereBPtr = std::make_unique<Sphere>();//堆上创建
+    sphereBPtr->setColor({0, 0, 255, 255});
+    sphereBPtr->setRadius(0.5f);
+    sphereBPtr->setPosition(Vec3(0.6f, 0, -2.0f));
+    sphereBPtr->setSpecular(100);
+    sphereBPtr->setReflectivity(0.2f);
+    scenePtr->addObjectPtr(std::move(sphereBPtr));//sphereBPtr现在是nullptr
+
     auto planePtr = std::make_unique<Plane>();
-    planePtr->setColor({255, 255, 0, 255});
+    planePtr->setColor({80, 140, 80, 255});
     planePtr->setNormal(Vec3(0, 2, 0));
-    planePtr->setPosition(Vec3(0, -1.3f, -2));
+    planePtr->setPosition(Vec3(0, -1.3f, -2.0f));
+    planePtr->setSpecular(1000);
+    planePtr->setReflectivity(0.f);
     scenePtr->addObjectPtr(std::move(planePtr));
 
     Vec3 L = Vec3(0,1,-1);
